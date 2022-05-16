@@ -12,18 +12,18 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: pie
-            asset_name: mything-linux-amd64
+            asset_name: pie-linux-amd64
           - os: windows-latest
             artifact_name: pie.exe
-            asset_name: mything-windows-amd64
+            asset_name: pie-windows-amd64
           - os: macos-latest
             artifact_name: pie
-            asset_name: mything-macos-amd64
+            asset_name: pie-macos-amd64
 
     steps:
     - uses: actions/checkout@v2
     - name: Build
-      run: cargo build --release --locked
+      run: cargo build --release
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
