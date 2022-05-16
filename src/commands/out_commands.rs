@@ -114,8 +114,16 @@ pub fn new(name: &str, description: &str) -> Result<()> {
         spinach_log(&spinach, "Initialised a local Git repo!", "Creating virtual env!", false);
     });
 
+    #[cfg(windows)]
     run_cmd("python", vec!["-m", "venv", "venv"], false, ||{
         spinach_log(&spinach, "Could not find the 'python' command. Please check if python is installed, and if it is in your %PATH% environment variable", "Finalising Project Creation!", true);
+    }, ||{
+        spinach_log(&spinach, "Created a Virtual environment", "Finalising Project Creation!", false);
+    });
+
+    #[cfg(not(windows))]
+    run_cmd("python3", vec!["-m", "venv", "venv"], false, ||{
+        spinach_log(&spinach, "Could not find the 'python3' command. Please check if python is installed, and if it is in your %PATH% environment variable", "Finalising Project Creation!", true);
     }, ||{
         spinach_log(&spinach, "Created a Virtual environment", "Finalising Project Creation!", false);
     });
