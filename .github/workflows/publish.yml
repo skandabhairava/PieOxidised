@@ -23,8 +23,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
+      with:
+            toolchain: stable
     - name: Build
-      run: cargo build --release
+      uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
       with:
