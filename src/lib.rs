@@ -1,9 +1,12 @@
 use std::{io::{self, Write}, error::Error, result, process::{Command, Stdio}, ffi::OsStr};
 pub type Result<T> = result::Result<T, Box<dyn Error>>;
 
-pub fn input(question: &str) -> Result<String> {
+pub fn input<T>(question: T) -> Result<String> 
+where
+    T: AsRef<str>
+{
     let mut guess = String::new();
-    print!("{}", question);
+    print!("{}", question.as_ref());
     io::stdout().flush()?;
     io::stdin().read_line(&mut guess)?;
     Ok(guess.trim().to_string())
@@ -29,7 +32,7 @@ where
                             .output()
     };
 
-    if out.is_err(){
+    if out.is_err() || !out.unwrap().status.success(){
         err_func();
     } else {
         ok_func();

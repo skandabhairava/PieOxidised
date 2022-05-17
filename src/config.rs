@@ -26,9 +26,9 @@ pub struct MainConfig {
             if !path.exists(){
 
                 println!("{}", Color::Green.bold().paint("Welcome to Pie Project Manager!"));
-                let dev = input(&(Color::Green.paint("Please enter your ").to_string() + &Color::Green.bold().paint("dev/brand name: ").to_string()))?;
-                let email = input(&(Color::Green.paint("Please enter your ").to_string() + &Color::Green.bold().paint("email address: ").to_string()))?;
-                let github = input(&(Color::Green.paint("Please enter your ").to_string() + &Color::Green.bold().paint("github profile url: ").to_string()))?;
+                let dev = input(format!("{}{}", Color::Green.paint("Please enter your "), Color::Green.bold().paint("dev/brand name: ")))?;
+                let email = input(format!("{}{}", Color::Green.paint("Please enter your "), Color::Green.bold().paint("email address: ")))?;
+                let github = input(format!("{}{}", Color::Green.paint("Please enter your "), Color::Green.bold().paint("github profile url: ")))?;
 
                 let conf = MainConfig::new(&dev, &email, &github);
                 conf.write_json()?;

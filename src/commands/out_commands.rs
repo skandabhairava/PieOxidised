@@ -61,7 +61,7 @@ pub fn delete_project(name: &str) -> Result<()> {
     if let Some(_project_conf) = is_in_proj(&proj_dir) {
         let captcha = name.to_string().to_uppercase() + "-" + &random_string::generate(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         println!("{}{}", Color::Red.paint("|> Please type this captcha to confirm project deletion: "), Color::Green.paint(&captcha));
-        let input_captcha = input(&Color::Green.paint("|> Enter captcha: ").to_string())?;
+        let input_captcha = input(Color::Green.paint("|> Enter captcha: ").to_string())?;
         if input_captcha.to_uppercase() == captcha{
             
             let result = remove_dir_all::remove_dir_all(proj_dir);
