@@ -13,3 +13,4 @@ directories = "4.0.1"
 ansi_term = "0.12"
 spinach = "2"
 ctrlc = { version = "3.0", features = ["termination"] }
+random-string = "1.0"

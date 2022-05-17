@@ -14,6 +14,18 @@ outside of it.
 <hr>
 <br>
 
+## Installation
+
+1. Install the appropriate latest PIE Project Manager version according to your OS from the [Latest Release](https://github.com/skandabhairava/pie-rust/releases/tag/main)
+
+2. Move the executable to a PATH directory, so you can use the executable from your terminal anywhere.
+
+3. Rename the executable to "pie" for Ease Of Use
+
+<hr>
+<br>
+
+
 ## CLI Commands
 
 > Outside a project
@@ -21,12 +33,13 @@ outside of it.
 | CLI Command| Description|
 | -- | -- |
 | cfg | Edits the config file. |
+| delete-project | Deletes a project. |
 | list | Lists all the projects in the current directory. |
 | new | Creates a new python project. |
 
 <br>
 
-> Inside a project (Directory should contain a "project.json")
+> Inside a project (Directory should contain a valid "project.json")
 
 | CLI Command| Description|
 | -- | -- |

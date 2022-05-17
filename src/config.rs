@@ -77,7 +77,7 @@ pub fn start_config_if_not(config_loc: &PathBuf) -> Result<()>{
 pub struct ProjectConfig{
     name: String,
     short_description: String,
-    version: String,
+    pub version: String,
     author: String,
     email: String,
     author_github: String,

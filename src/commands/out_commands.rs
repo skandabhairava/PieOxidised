@@ -1,10 +1,22 @@
 use std::{path::{PathBuf, Path}, fs, process, env, result};
 use clap::{Parser, Subcommand};
-use pie::{Result, gitignore, run_cmd};
+use pie::{Result, gitignore, run_cmd, input};
 use spinach::{Spinach, Spinner};
 use ansi_term::Color;
+use random_string;
 
 use crate::config::{MainConfig, ProjectConfig};
+
+pub fn is_in_proj(path: &PathBuf) -> Option<ProjectConfig>{
+    let project_conf = path.join("project.json");
+    if project_conf.exists(){
+        let project_conf_result: result::Result<ProjectConfig, serde_json::Error> = serde_json::from_str(&fs::read_to_string(project_conf).expect("Could not read 'project.json', please try again."));
+        if !project_conf_result.is_err() {
+            return Some(project_conf_result.unwrap());
+        }
+    }
+    None
+}
 
 /////////////////////////////////////////////////////////////////////
 
@@ -28,16 +40,50 @@ pub enum OutSubCommands{
     Cfg,
 
     /// Creates a new python project.
-    New{ name:String, short_description:String },
+    New{ name: String, short_description: String },
 
     /// List all the pie projects.
     List,
+
+    /// Deletes a project.
+    #[clap(long_about="Deletes a project. The name of the command is long as to not delete the project on accident.")]
+    DeleteProject{ name: String },
 
 }
 
 /////////////////////////////////////////////////////////////////////
 
-pub fn list() -> Result<()>{
+pub fn delete_project(name: &str) -> Result<()> {
+
+    let proj_dir = env::current_dir()?.join(name);
+
+    if let Some(_project_conf) = is_in_proj(&proj_dir) {
+        let captcha = name.to_string().to_uppercase() + "-" + &random_string::generate(5, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        println!("{}{}", Color::Red.paint("|> Please type this captcha to confirm project deletion: "), Color::Green.paint(&captcha));
+        let input_captcha = input(&Color::Green.paint("|> Enter captcha: ").to_string())?;
+        if input_captcha.to_uppercase() == captcha{
+            
+            let result = fs::remove_dir_all(proj_dir);
+            if result.is_err(){
+                println!("{}", Color::Red.paint("X |> There was an issue while removing the directories. Please try again."));
+                return Ok(());
+            }
+            println!("{}", Color::Green.paint("√ |> Project successfully deleted."));
+            return Ok(());
+
+        } else {
+            
+            println!("{}", Color::Red.paint("X |> Wrong Captcha. Project deletion, aborted."));
+
+        }
+    }
+
+    println!("{}", Color::Red.paint("X |> The given folder is not a pie-project."));
+
+    Ok(())
+}
+
+pub fn list() -> Result<()> {
     let path_buf = env::current_dir()?;
     let paths = fs::read_dir(path_buf.as_path())?;
 
@@ -58,7 +104,7 @@ pub fn list() -> Result<()>{
         }
     }
 
-    println!("> Projects in this directory: {:?}", projs);
+    println!("|> Projects in this directory: {:?}", projs);
 
     Ok(())
 }
@@ -139,7 +185,7 @@ fn create_project_files(relative_path: &Path, name: &str, description: &str) -> 
     fs::write(relative_path.join("README.md"), format!("# {}\n\n{}", name, description))?;
     fs::write(relative_path.join(".gitignore"), gitignore())?;
     fs::write(relative_path.join("requirements.txt"), "")?;
-    let config = MainConfig::from_file().expect(&Color::Red.paint("Could not read config file. Please run the 'cfg' command to rewrite the config file.").to_string());
+    let config = MainConfig::from_file().expect(&Color::Red.paint("Could not read main config file. Please run the 'cfg' command to rewrite the config file.").to_string());
     fs::write(relative_path.join("project.json"), 
     serde_json::to_string_pretty(&ProjectConfig::new(name, description, &config))?)?;
 
