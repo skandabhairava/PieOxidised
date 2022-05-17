@@ -81,8 +81,8 @@ pub struct ProjectConfig{
     author: String,
     email: String,
     author_github: String,
-    entry_point: String,
-    working_directory: String,
+    pub entry_point: String,
+    pub working_directory: String,
     github: String,
     license: String
 }

@@ -19,7 +19,8 @@ fn main() {
     if let Some(_project_conf) = out_commands::is_in_proj(&env::current_dir().unwrap()) {
         let args = InArgs::parse();
             match args.command {
-                in_commands::InSubCommands::Ver { ver } => { in_commands::version(ver).unwrap(); }
+                in_commands::InSubCommands::Ver { ver } => { in_commands::version(ver).unwrap(); },
+                in_commands::InSubCommands::Run { args } => { in_commands::run(args).unwrap(); }
             }
             return;
     }

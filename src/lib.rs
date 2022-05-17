@@ -1,4 +1,4 @@
-use std::{io::{self, Write}, error::Error, result, process::Command};
+use std::{io::{self, Write}, error::Error, result, process::{Command, Stdio}, ffi::OsStr};
 pub type Result<T> = result::Result<T, Box<dyn Error>>;
 
 pub fn input(question: &str) -> Result<String> {
@@ -9,24 +9,30 @@ pub fn input(question: &str) -> Result<String> {
     Ok(guess.trim().to_string())
 }
 
-pub fn run_cmd<T, K>(cmd: &str, args: Vec<&str>, should_display_output: bool, err_func: T, ok_func: K)
+pub fn run_cmd<S, T, K>(cmd: &str, args: &Vec<S>, should_display_output: bool, err_func: T, ok_func: K)
 where
+    S: AsRef<OsStr>,
     T: FnOnce(),
     K: FnOnce()
 
 {
-    let out = Command::new(cmd)
-                        .args(args)
-                        .output();
+    let out = if should_display_output {
+        Command::new(cmd)
+                            .args(args)
+                            .stdout(Stdio::inherit())
+                            .stdin(Stdio::inherit())
+                            .stderr(Stdio::inherit())
+                            .output()
+    } else {
+        Command::new(cmd)
+                            .args(args)
+                            .output()
+    };
 
     if out.is_err(){
         err_func();
     } else {
         ok_func();
-        let output = out.unwrap();
-        if should_display_output{
-            let _ = io::stdout().write_all(&output.stdout);
-        }
     }
 }
 

@@ -154,21 +154,21 @@ pub fn new(name: &str, description: &str) -> Result<()> {
         process::exit(1);
     }
 
-    run_cmd("git", vec!["init"], false, ||{
+    run_cmd("git", &vec!["init"], false, ||{
         spinach_log(&spinach, "Could not find the 'git' command.", "Creating virtual env!", true);
     }, ||{
         spinach_log(&spinach, "Initialised a local Git repo!", "Creating virtual env!", false);
     });
 
     #[cfg(windows)]
-    run_cmd("python", vec!["-m", "venv", "venv"], false, ||{
+    run_cmd("python", &vec!["-m", "venv", "venv"], false, ||{
         spinach_log(&spinach, "Could not find the 'python' command. Please check if python is installed, and if it is in your %PATH% environment variable", "Finalising Project Creation!", true);
     }, ||{
         spinach_log(&spinach, "Created a Virtual environment", "Finalising Project Creation!", false);
     });
 
     #[cfg(not(windows))]
-    run_cmd("python3", vec!["-m", "venv", "venv"], false, ||{
+    run_cmd("python3", &vec!["-m", "venv", "venv"], false, ||{
         spinach_log(&spinach, "Could not find the 'python3' command. Please check if python is installed, and if it is in your %PATH% environment variable", "Finalising Project Creation!", true);
     }, ||{
         spinach_log(&spinach, "Created a Virtual environment", "Finalising Project Creation!", false);
@@ -181,7 +181,7 @@ pub fn new(name: &str, description: &str) -> Result<()> {
 
 fn create_project_files(relative_path: &Path, name: &str, description: &str) -> Result<()> {
     fs::create_dir_all(relative_path.join("src"))?;
-    fs::write(relative_path.join("src").join(name.to_string() + ".py"), "#! /usr/bin/python\n\ndef main():\n    print(\"Hello World!\")\n\nif __name__ == \"__main__\":\n    main()")?;
+    fs::write(relative_path.join("src").join(name.to_string() + ".py"), "#!/usr/bin/env python3\n\ndef main():\n    print(\"Hello World!\")\n\nif __name__ == \"__main__\":\n    main()")?;
     fs::write(relative_path.join("README.md"), format!("# {}\n\n{}", name, description))?;
     fs::write(relative_path.join(".gitignore"), gitignore())?;
     fs::write(relative_path.join("requirements.txt"), "")?;
