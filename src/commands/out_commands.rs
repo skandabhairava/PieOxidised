@@ -4,6 +4,7 @@ use pie::{Result, gitignore, run_cmd, input};
 use spinach::{Spinach, Spinner};
 use ansi_term::Color;
 use random_string;
+use remove_dir_all;
 
 use crate::config::{MainConfig, ProjectConfig};
 
@@ -63,7 +64,7 @@ pub fn delete_project(name: &str) -> Result<()> {
         let input_captcha = input(&Color::Green.paint("|> Enter captcha: ").to_string())?;
         if input_captcha.to_uppercase() == captcha{
             
-            let result = fs::remove_dir_all(proj_dir);
+            let result = remove_dir_all::remove_dir_all(proj_dir);
             if result.is_err(){
                 println!("{}", Color::Red.paint("X |> There was an issue while removing the directories. Please try again."));
                 return Ok(());

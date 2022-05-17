@@ -1,6 +1,6 @@
 [package]
 name = "pie"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -14,3 +14,4 @@ ansi_term = "0.12"
 spinach = "2"
 ctrlc = { version = "3.0", features = ["termination"] }
 random-string = "1.0"
+remove_dir_all = "0.7.0"
