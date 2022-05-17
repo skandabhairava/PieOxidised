@@ -104,7 +104,7 @@ pub fn list() -> Result<()> {
         }
     }
 
-    println!("|> Projects in this directory: {:?}", projs);
+    println!("{} {}", Color::Green.paint("|> Projects in this directory: "), Color::Green.bold().paint(format!("{:?}", projs)));
 
     Ok(())
 }
