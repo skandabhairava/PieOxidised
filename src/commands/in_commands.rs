@@ -60,7 +60,7 @@ pub fn run(mut args: Vec<String>) -> Result<()> {
         if !venv_path.exists(){
             println!("{}", Color::Red.paint("X |> Venv Not Found. Initialising a venv. Please wait"));
             run_cmd("python3", &vec!["-m", "venv", "venv"], false, ||{}, ||{});
-            run_venv_cmd("pip", &mut vec!["install", "-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), RunPy::DontRun, false)?;
+            run_venv_cmd("pip3", &mut vec!["install", "-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), RunPy::DontRun, false)?;
             println!("{}", Color::Green.paint("√ |> Initialised a venv, and installed requirements. Please restart the program."));
             process::exit(1);
         }
@@ -80,7 +80,6 @@ fn run_venv_cmd(main_cmd: &str, args: &mut Vec<String>, run: RunPy, should_displ
             args.insert(0, conf.entry_point);
         }
 
-        #[cfg(windows)]
         let path_win = Path::new("..").join("venv").join("Scripts").join(main_cmd);
         let path_else = Path::new("..").join("venv").join("bin").join(main_cmd);
         let main_cmd = if cfg!(windows) {path_win.to_str().unwrap()} else {path_else.to_str().unwrap()};
