@@ -62,7 +62,7 @@ pub struct MainConfig {
             Ok(())
         }
     }
-////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
 
 pub fn start_config_if_not(config_loc: &PathBuf) -> Result<()>{
     if !config_loc.exists() {
@@ -72,7 +72,7 @@ pub fn start_config_if_not(config_loc: &PathBuf) -> Result<()>{
     Ok(())
 }
 
-////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProjectConfig{
     name: String,
