@@ -240,7 +240,7 @@ pub fn unpkg(project: &str, force: bool) -> Result<()> {
             spinach_log(&spinach, "Created a Virtual environment", "Finalising Project Creation!", false);
         });
 
-        let result = in_commands::reqs(true, false);
+        let result = in_commands::reqs(true, false, &None);
         if result.is_err(){
             spinach.stop_with("X |> ", Color::Red.paint("Cannot install requirements from 'requirements.txt'").to_string(), spinach::Color::Ignore);
             process::exit(1);
@@ -288,7 +288,7 @@ pub fn pkg(project : &str, force: bool) -> Result<()> {
 
     // Go inside project directory, and note down the requirements.
     env::set_current_dir(project)?;
-    in_commands::reqs(false, false)?;
+    in_commands::reqs(false, false, &None)?;
     env::set_current_dir("..")?;
 
     match compress(project, env::current_dir()?.join(format!("{}.pie", project)).to_str().unwrap(), zip::CompressionMethod::Stored){

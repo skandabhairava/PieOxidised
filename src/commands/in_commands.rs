@@ -5,6 +5,8 @@ use clap::{Parser, Subcommand};
 use pie::{Result, run_cmd};
 use spinach::{Spinach, Spinner};
 
+use crate::config::ProjectConfig;
+
 use super::out_commands;
 
 /////////////////////////////////////////////////////////////////////
@@ -140,25 +142,26 @@ pub fn push(commit_msg: String, remote: String, branch: String) -> Result<()>{
     Ok(())
 }
 
-pub fn auto_install() -> Result<()> {
-    reqs(false, true)?;
-    reqs(true, true)?;
+pub fn auto_install(is_in_proj: &Option<ProjectConfig>) -> Result<()> {
+
+    reqs(false, true, is_in_proj)?;
+    reqs(true, true, is_in_proj)?;
     Ok(())
 }
 
-pub fn reqs(install: bool, display_progress: bool) -> Result<()> {
+pub fn reqs(install: bool, display_progress: bool, is_in_proj: &Option<ProjectConfig>) -> Result<&Option<ProjectConfig>> {
     if install{
         let req_txt = Path::new("requirements.txt");
         if req_txt.exists(){
-            run_pip("install", &mut vec!["-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), false)?;
+            //run_pip("install", &mut vec!["-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), false, &is_in_proj)?;
             
             if display_progress{ println!("{}", Color::Green.bold().paint("√ |> Installed packages in 'requirements.txt'")); }
 
-            return Ok(());
+            return Ok(&is_in_proj);
         }
         
         if display_progress{ println!("{}", Color::Red.bold().paint("X |> Could not find 'requirements.txt'")); }
-        return Ok(());
+        return Ok(&is_in_proj);
         
     }
 
@@ -168,20 +171,20 @@ pub fn reqs(install: bool, display_progress: bool) -> Result<()> {
         if display_progress{ println!("{}", Color::Green.bold().paint("√ |> Written requirements in 'requirements.txt'")); }
     });
 
-    Ok(())
+    Ok(&is_in_proj)
 }
 
-pub fn run_pip(cmd: &str, args: &mut Vec<String>, should_display_output: bool) -> Result<()> {
+pub fn run_pip(cmd: &str, args: &mut Vec<String>, should_display_output: bool, is_in_proj: Option<ProjectConfig>) -> Result<()> {
 
     if cmd != ""{
         args.insert(0, cmd.to_string());
     }
 
     #[cfg(windows)]
-    run_venv_cmd("pip", args, RunPy::DontRun, should_display_output)?;
+    run_venv_cmd("pip", args, RunPy::DontRun, should_display_output, is_in_proj)?;
 
     #[cfg(not(windows))]
-    run_venv_cmd("pip3", args, RunPy::DontRun, should_display_output)?;
+    run_venv_cmd("pip3", args, RunPy::DontRun, should_display_output, is_in_proj)?;
 
     Ok(())
 }
@@ -191,52 +194,48 @@ enum RunPy{
     DontRun
 }
 
-pub fn run(mut args: Vec<String>) -> Result<()> {
+pub fn run(mut args: Vec<String>, is_in_proj: ProjectConfig) -> Result<()> {
     #[cfg(windows)]
-    run_venv_cmd("python", &mut args, RunPy::Run, true)?;
+    run_venv_cmd("python", &mut args, RunPy::Run, true, Some(is_in_proj))?;
 
     #[cfg(not(windows))]
-    run_venv_cmd("python3", &mut args, RunPy::Run, true)?;
+    run_venv_cmd("python3", &mut args, RunPy::Run, true, Some(is_in_proj))?;
 
     Ok(())
 }
 
-fn run_venv_cmd(main_cmd: &str, args: &mut Vec<String>, run: RunPy, should_display_output: bool) -> Result<()> {
+fn run_venv_cmd(main_cmd: &str, args: &mut Vec<String>, run: RunPy, should_display_output: bool, is_in_proj: Option<ProjectConfig>) -> Result<()> {
 
-    let venv_path = Path::new("venv");
+    let project_conf = match is_in_proj{    
+        None => out_commands::is_in_proj(&env::current_dir().unwrap()),
+        _ => is_in_proj
+    };
+    
+    if let Some(conf) = &project_conf{
 
-    if !venv_path.exists(){
-        #[cfg(windows)]
-        {
+        let venv_path = Path::new("venv");
+
+        if !venv_path.exists(){
+
+            let cmds = if cfg!(windows) {("python", "pip")} else {("python3", "pip3")};
+
             println!("{}", Color::Red.paint("X |> Venv Not Found. Initialising a venv. Please wait"));
-            run_cmd("python", &vec!["-m", "venv", "venv"], false, ||{}, ||{});
-            run_venv_cmd("pip", &mut vec!["install", "-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), RunPy::DontRun, false)?;
+            run_cmd(cmds.0, &vec!["-m", "venv", "venv"], false, ||{}, ||{});
+            run_venv_cmd(cmds.1, &mut vec!["install", "-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), RunPy::DontRun, false, project_conf)?;
             println!("{}", Color::Green.paint("√ |> Initialised a venv, and installed requirements from 'requirements.txt'. Please restart the program."));
             process::exit(1);
-        }
 
-        #[cfg(not(windows))]
-        {
-            println!("{}", Color::Red.paint("X |> Venv Not Found. Initialising a venv. Please wait"));
-            run_cmd("python3", &vec!["-m", "venv", "venv"], false, ||{}, ||{});
-            run_venv_cmd("pip3", &mut vec!["install", "-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), RunPy::DontRun, false)?;
-            println!("{}", Color::Green.paint("√ |> Initialised a venv, and installed requirements from 'requirements.txt'. Please restart the program."));
-            process::exit(1);
         }
-    }
-
-    let project_conf = out_commands::is_in_proj(&env::current_dir().unwrap());
     
-    if let Some(conf) = project_conf{
-    
-        env::set_current_dir(conf.working_directory)?;
+        env::set_current_dir(&conf.working_directory)?;
         if let RunPy::Run = run{
-            args.insert(0, conf.entry_point);
+            args.insert(0, conf.entry_point.to_string());
         }
 
-        let path_win = Path::new("..").join("venv").join("Scripts").join(main_cmd);
-        let path_else = Path::new("..").join("venv").join("bin").join(main_cmd);
-        let main_cmd = if cfg!(windows) {path_win.to_str().unwrap()} else {path_else.to_str().unwrap()};
+        let dir_venv = if cfg!(windows) {"Scripts"} else {"bin"};
+
+        let path = Path::new("..").join("venv").join(dir_venv).join(main_cmd);
+        let main_cmd = path.to_str().unwrap();
 
         run_cmd(main_cmd, &args, should_display_output, || {}, || {});
     }
@@ -244,18 +243,12 @@ fn run_venv_cmd(main_cmd: &str, args: &mut Vec<String>, run: RunPy, should_displ
     Ok(())
 }
 
-pub fn version(ver: Option<String>) -> Result<()> {
-    let project_conf = out_commands::is_in_proj(&env::current_dir().unwrap());
-    if let Some(mut conf) = project_conf{
-        println!("{}{}", Color::Green.paint("|> Current Version: "), Color::Green.bold().paint(conf.version));
-        if let Some(version) = ver{
-            conf.version = version;
-            fs::write("project.json", serde_json::to_string_pretty(&conf)?)?;
-            println!("{}{}", Color::Green.paint("√ |> New Version: "), Color::Green.bold().paint(conf.version));
-        }
-    } else {
-        println!("{}", Color::Green.paint("X |> There was an error locating 'project.json'. Please try again."));
+pub fn version(ver: Option<String>, is_in_proj: &mut ProjectConfig) -> Result<()> {
+    println!("{}{}", Color::Green.paint("|> Current Version: "), Color::Green.bold().paint(&is_in_proj.version));
+    if let Some(version) = ver{
+        is_in_proj.version = version;
+        fs::write("project.json", serde_json::to_string_pretty(&is_in_proj)?)?;
+        println!("{}{}", Color::Green.paint("√ |> New Version: "), Color::Green.bold().paint(&is_in_proj.version));
     }
-
     Ok(())
 }

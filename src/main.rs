@@ -16,18 +16,18 @@ fn main() {
     let config_loc = setup();
 
     // IF PROJECT CONFIG (w/ VALIDATION) EXISTS
-    if let Some(_project_conf) = out_commands::is_in_proj(&env::current_dir().unwrap()) {
+    if let Some(mut project_conf) = out_commands::is_in_proj(&env::current_dir().unwrap()) {
         let args = InArgs::parse();
             match args.command {
-                in_commands::InSubCommands::Ver { ver } => { in_commands::version(ver).unwrap(); }
-                in_commands::InSubCommands::Run { args } => { in_commands::run(args).unwrap(); }
-                in_commands::InSubCommands::Show { mut args } => { in_commands::run_pip("show", &mut args, true).unwrap(); },
-                in_commands::InSubCommands::Pip { mut args } => { in_commands::run_pip("", &mut args, true).unwrap(); }
-                in_commands::InSubCommands::List { mut args } => { in_commands::run_pip("list", &mut args, true).unwrap(); }
-                in_commands::InSubCommands::Install { mut args } => { in_commands::run_pip("install", &mut args, true).unwrap(); }
-                in_commands::InSubCommands::Uninstall { mut args } => { in_commands::run_pip("uninstall", &mut args, true).unwrap(); }
-                in_commands::InSubCommands::Reqs { install } => { in_commands::reqs(install, true).unwrap(); }
-                in_commands::InSubCommands::AutoInstall => {in_commands::auto_install().unwrap();}
+                in_commands::InSubCommands::Ver { ver } => { in_commands::version(ver, &mut project_conf).unwrap(); }
+                in_commands::InSubCommands::Run { args } => { in_commands::run(args, project_conf).unwrap(); }
+                in_commands::InSubCommands::Show { mut args } => { in_commands::run_pip("show", &mut args, true, Some(project_conf)).unwrap(); },
+                in_commands::InSubCommands::Pip { mut args } => { in_commands::run_pip("", &mut args, true, Some(project_conf)).unwrap(); }
+                in_commands::InSubCommands::List { mut args } => { in_commands::run_pip("list", &mut args, true, Some(project_conf)).unwrap(); }
+                in_commands::InSubCommands::Install { mut args } => { in_commands::run_pip("install", &mut args, true, Some(project_conf)).unwrap(); }
+                in_commands::InSubCommands::Uninstall { mut args } => { in_commands::run_pip("uninstall", &mut args, true, Some(project_conf)).unwrap(); }
+                in_commands::InSubCommands::Reqs { install } => { in_commands::reqs(install, true, &Some(project_conf)).unwrap(); }
+                in_commands::InSubCommands::AutoInstall => {in_commands::auto_install(&Some(project_conf)).unwrap();}
                 in_commands::InSubCommands::Push { commit_msg, remote, branch } => { in_commands::push(commit_msg, remote, branch).unwrap(); }
             }
             return;
