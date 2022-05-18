@@ -77,6 +77,7 @@ pub enum InSubCommands{
     /// Automatically installs all modules used in the project, to the venv.
     AutoInstall,
 
+    /// Pushes the repository to the specified remote and branch. Assuming git remote and branch are set.
     Push{
         /// The Commit message.
         commit_msg: String,
@@ -142,26 +143,26 @@ pub fn push(commit_msg: String, remote: String, branch: String) -> Result<()>{
     Ok(())
 }
 
-pub fn auto_install(is_in_proj: &Option<ProjectConfig>) -> Result<()> {
+pub fn auto_install(is_in_proj: Option<ProjectConfig>) -> Result<()> {
 
-    reqs(false, true, is_in_proj)?;
-    reqs(true, true, is_in_proj)?;
+    let result = reqs(false, true, is_in_proj)?;
+    reqs(true, true, result)?;
     Ok(())
 }
 
-pub fn reqs(install: bool, display_progress: bool, is_in_proj: &Option<ProjectConfig>) -> Result<&Option<ProjectConfig>> {
+pub fn reqs(install: bool, display_progress: bool, is_in_proj: Option<ProjectConfig>) -> Result<Option<ProjectConfig>> {
     if install{
         let req_txt = Path::new("requirements.txt");
         if req_txt.exists(){
-            //run_pip("install", &mut vec!["-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), false, &is_in_proj)?;
+            let is_in_proj = run_pip("install", &mut vec!["-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), false, is_in_proj)?;
             
             if display_progress{ println!("{}", Color::Green.bold().paint("√ |> Installed packages in 'requirements.txt'")); }
 
-            return Ok(&is_in_proj);
+            return Ok(is_in_proj);
         }
         
         if display_progress{ println!("{}", Color::Red.bold().paint("X |> Could not find 'requirements.txt'")); }
-        return Ok(&is_in_proj);
+        return Ok(is_in_proj);
         
     }
 
@@ -171,22 +172,22 @@ pub fn reqs(install: bool, display_progress: bool, is_in_proj: &Option<ProjectCo
         if display_progress{ println!("{}", Color::Green.bold().paint("√ |> Written requirements in 'requirements.txt'")); }
     });
 
-    Ok(&is_in_proj)
+    Ok(is_in_proj)
 }
 
-pub fn run_pip(cmd: &str, args: &mut Vec<String>, should_display_output: bool, is_in_proj: Option<ProjectConfig>) -> Result<()> {
+pub fn run_pip(cmd: &str, args: &mut Vec<String>, should_display_output: bool, is_in_proj: Option<ProjectConfig>) -> Result<Option<ProjectConfig>> {
 
     if cmd != ""{
         args.insert(0, cmd.to_string());
     }
 
     #[cfg(windows)]
-    run_venv_cmd("pip", args, RunPy::DontRun, should_display_output, is_in_proj)?;
+    let is_in_proj = run_venv_cmd("pip", args, RunPy::DontRun, should_display_output, is_in_proj)?;
 
     #[cfg(not(windows))]
-    run_venv_cmd("pip3", args, RunPy::DontRun, should_display_output, is_in_proj)?;
+    let is_in_proj = run_venv_cmd("pip3", args, RunPy::DontRun, should_display_output, is_in_proj)?;
 
-    Ok(())
+    Ok(is_in_proj)
 }
 
 enum RunPy{
@@ -204,11 +205,12 @@ pub fn run(mut args: Vec<String>, is_in_proj: ProjectConfig) -> Result<()> {
     Ok(())
 }
 
-fn run_venv_cmd(main_cmd: &str, args: &mut Vec<String>, run: RunPy, should_display_output: bool, is_in_proj: Option<ProjectConfig>) -> Result<()> {
+fn run_venv_cmd(main_cmd: &str, args: &mut Vec<String>, run: RunPy, should_display_output: bool, is_in_proj: Option<ProjectConfig>) -> Result<Option<ProjectConfig>> {
 
-    let project_conf = match is_in_proj{    
-        None => out_commands::is_in_proj(&env::current_dir().unwrap()),
-        _ => is_in_proj
+    let project_conf = if let None = is_in_proj{
+        out_commands::is_in_proj(&env::current_dir().unwrap())
+    } else {
+        is_in_proj
     };
     
     if let Some(conf) = &project_conf{
@@ -240,7 +242,7 @@ fn run_venv_cmd(main_cmd: &str, args: &mut Vec<String>, run: RunPy, should_displ
         run_cmd(main_cmd, &args, should_display_output, || {}, || {});
     }
 
-    Ok(())
+    Ok(project_conf)
 }
 
 pub fn version(ver: Option<String>, is_in_proj: &mut ProjectConfig) -> Result<()> {

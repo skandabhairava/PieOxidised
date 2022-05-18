@@ -26,8 +26,8 @@ fn main() {
                 in_commands::InSubCommands::List { mut args } => { in_commands::run_pip("list", &mut args, true, Some(project_conf)).unwrap(); }
                 in_commands::InSubCommands::Install { mut args } => { in_commands::run_pip("install", &mut args, true, Some(project_conf)).unwrap(); }
                 in_commands::InSubCommands::Uninstall { mut args } => { in_commands::run_pip("uninstall", &mut args, true, Some(project_conf)).unwrap(); }
-                in_commands::InSubCommands::Reqs { install } => { in_commands::reqs(install, true, &Some(project_conf)).unwrap(); }
-                in_commands::InSubCommands::AutoInstall => {in_commands::auto_install(&Some(project_conf)).unwrap();}
+                in_commands::InSubCommands::Reqs { install } => { in_commands::reqs(install, true, Some(project_conf)).unwrap(); }
+                in_commands::InSubCommands::AutoInstall => {in_commands::auto_install(Some(project_conf)).unwrap();}
                 in_commands::InSubCommands::Push { commit_msg, remote, branch } => { in_commands::push(commit_msg, remote, branch).unwrap(); }
             }
             return;
