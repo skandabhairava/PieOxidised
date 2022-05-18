@@ -26,7 +26,7 @@ fn main() {
                 in_commands::InSubCommands::List { mut args } => { in_commands::run_pip("list", &mut args, true).unwrap(); }
                 in_commands::InSubCommands::Install { mut args } => { in_commands::run_pip("install", &mut args, true).unwrap(); }
                 in_commands::InSubCommands::Uninstall { mut args } => { in_commands::run_pip("uninstall", &mut args, true).unwrap(); }
-                in_commands::InSubCommands::Reqs { install } => { in_commands::reqs(install).unwrap(); }
+                in_commands::InSubCommands::Reqs { install } => { in_commands::reqs(install, true).unwrap(); }
                 in_commands::InSubCommands::AutoInstall => {in_commands::auto_install().unwrap();}
                 in_commands::InSubCommands::Push { commit_msg, remote, branch } => { in_commands::push(commit_msg, remote, branch).unwrap(); }
             }
@@ -39,6 +39,8 @@ fn main() {
         out_commands::OutSubCommands::DeleteProject { name } => { out_commands::delete_project(&name).unwrap(); }
         out_commands::OutSubCommands::Cfg => {out_commands::config(&config_loc, &conf::start_config_if_not).unwrap();}
         out_commands::OutSubCommands::New { name, short_description } => {out_commands::new(&name, &short_description).unwrap();}
+        out_commands::OutSubCommands::Pkg { project, force } => { out_commands::pkg(&project, force).unwrap(); }
+        out_commands::OutSubCommands::Unpkg { project, force } => { out_commands::unpkg(&project, force).unwrap(); }
     }
 }
 

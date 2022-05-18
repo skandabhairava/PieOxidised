@@ -141,30 +141,31 @@ pub fn push(commit_msg: String, remote: String, branch: String) -> Result<()>{
 }
 
 pub fn auto_install() -> Result<()> {
-    reqs(false)?;
-    reqs(true)?;
+    reqs(false, true)?;
+    reqs(true, true)?;
     Ok(())
 }
 
-pub fn reqs(install: bool) -> Result<()> {
+pub fn reqs(install: bool, display_progress: bool) -> Result<()> {
     if install{
         let req_txt = Path::new("requirements.txt");
         if req_txt.exists(){
             run_pip("install", &mut vec!["-r", Path::new("..").join("requirements.txt").to_str().unwrap()].into_iter().map(String::from).collect(), false)?;
-            println!("{}", Color::Green.bold().paint("√ |> Installed packages in 'requirements.txt'"));
+            
+            if display_progress{ println!("{}", Color::Green.bold().paint("√ |> Installed packages in 'requirements.txt'")); }
 
             return Ok(());
         }
         
-        println!("{}", Color::Red.bold().paint("X |> Could not find 'requirements.txt'"));
+        if display_progress{ println!("{}", Color::Red.bold().paint("X |> Could not find 'requirements.txt'")); }
         return Ok(());
         
     }
 
     run_cmd("pipreqs", &vec![String::from("--force")], false, ||{
-        println!("{}", Color::Red.bold().paint("X |> Command 'pipreqs' failed. Please check if 'pipreqs' is installed, if not, install it from pip/pypi. If pipreqs is installed, please check your project for correct import statements"));
+        if display_progress{ println!("{}", Color::Red.bold().paint("X |> Command 'pipreqs' failed. Please check if 'pipreqs' is installed, if not, install it from pip/pypi. If pipreqs is installed, please check your project for correct import statements")); }
     }, || {
-        println!("{}", Color::Green.bold().paint("√ |> Written requirements in 'requirements.txt'"));
+        if display_progress{ println!("{}", Color::Green.bold().paint("√ |> Written requirements in 'requirements.txt'")); }
     });
 
     Ok(())
