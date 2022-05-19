@@ -1,6 +1,6 @@
 use std::{path::{PathBuf, Path}, fs::{self, File}, process, env, result, io::{Write, Seek, Read, self}};
 use clap::{Parser, Subcommand};
-use pie::{Result, gitignore, run_cmd, input};
+use pie::{Result, gitignore, input, run_cmd};
 use spinach::{Spinach, Spinner};
 use ansi_term::Color;
 use random_string;
@@ -80,6 +80,41 @@ pub enum OutSubCommands{
 }
 
 /////////////////////////////////////////////////////////////////////
+
+pub fn run_folder(path: &[String]) -> Result<()> {
+
+    //folder <args1> <args2>
+    
+    let path_buf = PathBuf::from(&path[0]);
+    let project_conf = is_in_proj(&path_buf);
+    if project_conf.is_none() {
+       println!("{}", format!("{}{}{}", Color::Red.paint("X |> '"), Color::Red.bold().paint(&path[0]), Color::Red.paint("' is not a valid pie project")));
+       process::exit(1);
+    }
+
+    env::set_current_dir(path_buf)?;
+
+    let conf = project_conf.unwrap();
+
+    in_commands::run((&path[1..]).to_vec(), conf)?;
+
+    Ok(())
+}
+pub fn run_file(path: &[String]) -> Result<()> {
+
+    if !(&path[0]).ends_with(".py"){
+        println!("{}", format!("{}{}{}", Color::Red.paint("X |> '"), Color::Red.bold().paint(&path[0]), Color::Red.paint("' is not a valid .py script")));
+        return Ok(());
+    }
+
+    #[cfg(windows)]
+    run_cmd("python", &path.to_vec(), true, || {}, || {});
+
+    #[cfg(not(windows))]
+    run_cmd("python3", &path.to_vec(), true, || {}, || {});
+
+    Ok(())
+}
 
 fn zip_dir<T>(
     it: &mut dyn Iterator<Item = DirEntry>,
@@ -432,7 +467,7 @@ pub fn new(name: &str, description: &str) -> Result<()> {
 
 fn create_project_files(relative_path: &Path, name: &str, description: &str) -> Result<()> {
     fs::create_dir_all(relative_path.join("src"))?;
-    fs::write(relative_path.join("src").join(name.to_string() + ".py"), "#!/usr/bin/env python3\n\ndef main():\n    print(\"Hello World!\")\n\nif __name__ == \"__main__\":\n    main()")?;
+    fs::write(relative_path.join("src").join(name.to_string() + ".py"), "#!/usr/bin/env python3\n\ndef main():\n    print(\"Hello Pie!\")\n\nif __name__ == \"__main__\":\n    main()")?;
     fs::write(relative_path.join("README.md"), format!("# {}\n\n{}", name, description))?;
     fs::write(relative_path.join(".gitignore"), gitignore())?;
     fs::write(relative_path.join("requirements.txt"), "")?;

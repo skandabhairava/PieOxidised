@@ -1,11 +1,12 @@
 mod config;
+use ansi_term::Color;
 use config::{self as conf, MainConfig};
 mod commands {
     pub mod out_commands;
     pub mod in_commands;
 }
 use commands::{out_commands::{self, OutArgs}, in_commands::{self, InArgs}};
-use std::{process, path::PathBuf, env};
+use std::{process, path::{PathBuf, Path}, env};
 use spinach::term;
 use clap::Parser;
 
@@ -15,8 +16,25 @@ fn main() {
     
     let config_loc = setup();
 
+    let args = env::args().collect::<Vec<String>>();
+    if args.len() >= 2 {
+        // <pie.exe> folder <args1> <args2>
+        // <pie.exe> <abc.py> <args1> <args2>
+        let path = PathBuf::from(&args[1]);
+        if path.is_dir() {
+            out_commands::run_folder(&args[1..]).unwrap();
+            process::exit(0);
+        } else if path.is_file() {
+            out_commands::run_file(&args[1..]).unwrap();
+            process::exit(0);
+        } else if (&args[1]).ends_with(".py") {
+            println!("{}", format!("{}{}{}", Color::Red.paint("X |> '"), Color::Red.bold().paint(&args[1]), Color::Red.paint("' Python file does not exist.")));
+            process::exit(1);
+        }
+    }
+
     // IF PROJECT CONFIG (w/ VALIDATION) EXISTS
-    if let Some(mut project_conf) = out_commands::is_in_proj(&env::current_dir().unwrap()) {
+    if let Some(mut project_conf) = out_commands::is_in_proj(&Path::new(".").to_owned()) {
         let args = InArgs::parse();
             match args.command {
                 in_commands::InSubCommands::Ver { ver } => { in_commands::version(ver, &mut project_conf).unwrap(); }
