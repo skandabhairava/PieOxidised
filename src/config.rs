@@ -75,29 +75,29 @@ pub fn start_config_if_not(config_loc: &PathBuf) -> Result<()>{
 /////////////////////////////////////////////////////
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ProjectConfig{
-    name: String,
-    short_description: String,
-    pub version: String,
-    author: String,
-    email: String,
-    author_github: String,
+    name: Option<String>,
+    short_description: Option<String>,
+    pub version: Option<String>,
+    author: Option<String>,
+    email: Option<String>,
+    author_github: Option<String>,
     pub entry_point: String,
     pub working_directory: String,
-    github: String,
-    license: String
+    github: Option<String>,
+    license: Option<String>
 }
     impl ProjectConfig {
         pub fn new(name: &str, description: &str, config: &MainConfig) -> ProjectConfig{
-            ProjectConfig { name: name.to_string(),
-                short_description: description.to_string(),
-                version: String::from("0.0.1"),
-                author: config.dev.to_string(),
-                email: config.email.to_string(),
-                author_github: config.github.to_string(),
+            ProjectConfig { name: Some(name.to_string()),
+                short_description: Some(description.to_string()),
+                version: Some(String::from("0.0.1")),
+                author: Some(config.dev.to_string()),
+                email: Some(config.email.to_string()),
+                author_github: Some(config.github.to_string()),
                 entry_point: name.to_string() + ".py",
                 working_directory: String::from("src"),
-                github: String::from(""),
-                license: String::from("MIT")
+                github: Some(String::from("")),
+                license: Some(String::from("MIT"))
             }
         }
     }

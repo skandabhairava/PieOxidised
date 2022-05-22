@@ -246,11 +246,16 @@ fn run_venv_cmd(main_cmd: &str, args: &mut Vec<String>, run: RunPy, should_displ
 }
 
 pub fn version(ver: Option<String>, is_in_proj: &mut ProjectConfig) -> Result<()> {
-    println!("{}{}", Color::Green.paint("|> Current Version: "), Color::Green.bold().paint(&is_in_proj.version));
-    if let Some(version) = ver{
-        is_in_proj.version = version;
-        fs::write("project.json", serde_json::to_string_pretty(&is_in_proj)?)?;
-        println!("{}{}", Color::Green.paint("√ |> New Version: "), Color::Green.bold().paint(&is_in_proj.version));
+
+    if let Some(proj_ver) = &is_in_proj.version {
+        println!("{}{}", Color::Green.paint("|> Current Version: "), Color::Green.bold().paint(proj_ver));
+        if let Some(inp_version) = ver{
+            is_in_proj.version = Some(inp_version.to_owned());
+            fs::write("project.json", serde_json::to_string_pretty(&is_in_proj)?)?;
+            println!("{}{}", Color::Green.paint("√ |> New Version: "), Color::Green.bold().paint(inp_version));
+        }
+        return Ok(());
     }
+    println!("{}", Color::Red.paint("This project.json doesn't contain a 'version' field."));
     Ok(())
 }
