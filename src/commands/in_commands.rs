@@ -256,6 +256,6 @@ pub fn version(ver: Option<String>, is_in_proj: &mut ProjectConfig) -> Result<()
         }
         return Ok(());
     }
-    println!("{}", Color::Red.paint("This project.json doesn't contain a 'version' field."));
+    println!("{}", Color::Red.paint("This project.json doesn't contain a 'version' field.")); 
     Ok(())
 }
